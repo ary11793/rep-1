@@ -1,0 +1,46 @@
+module testbench;
+  integer file, status;
+  reg [15:0] matrix_a [0:305][0:2];  // 3x3 matrix to hold 16-bit floating-point numbers
+  reg [15:0] temp;                 // Temporary register to store the 16-bit floating-point number
+  integer row, col;
+  reg [15:0] sign, exponent, mantissa;
+
+  // Function to convert binary strings into a 16-bit floating-point number
+  function [15:0] binary_to_fp(input [0:0] s, input [4:0] exp, input [9:0] mant);
+  begin
+    binary_to_fp = {s, exp, mant}; // Concatenate sign, exponent, and mantissa
+  end
+  endfunction
+
+  initial begin
+    // Open the matrix input file
+    file = $fopen("matrix_fp_input.txt", "r");
+
+    if (file == 0) begin
+      $display("Error: Could not open file.");
+      $finish;
+    end
+
+    // Reading matrix row by row
+    for (row = 0; row < 306; row = row + 1) begin
+      for (col = 0; col < 3; col = col + 1) begin
+        status = $fscanf(file, "%b %b %b", sign, exponent, mantissa);  // Read the sign, exponent, and mantissa
+        matrix_a[row][col] = binary_to_fp(sign, exponent, mantissa);    // Convert and store in matrix_a
+      end
+    end
+
+    // Close the file
+    $fclose(file);
+
+    // Displaying the matrix for debugging
+    $display("Matrix A:");
+    for (row = 0; row < 306; row = row + 1) begin
+      for (col = 0; col < 3; col = col + 1) begin
+        $display("matrix_a[%0d][%0d] = %b", row, col, matrix_a[row][col]);  // Display the 16-bit binary value
+      end
+    end
+
+
+    $finish;
+  end
+endmodule
